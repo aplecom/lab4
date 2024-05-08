@@ -1,7 +1,7 @@
 /**
  * Реализация пула потоков.
  */
-
+#include "list.h"
 #include <pthread.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -15,39 +15,58 @@
 
 // это представляет собой работу, которая должна быть
 // завершена потоком в пуле
-typedef struct 
-{
-    void (*function)(void *p);
-    void *data;
-}
-task;
+
 
 // рабочая очередь
-task worktodo;
+Task worktodo;
 
-// рабочий bee ( id потокка )
-pthread_t bee;
 
+// рабочие  bee ( id потокка )
+pthread_t bees[NUMBER_OF_THREADS];
+// мьютекс инициализируется в свое стандартное состояние, где он не заблокирован и не имеет атрибутов
+pthread_mutex_t queue_lock = PTHREAD_MUTEX_INITIALIZER;
+sem_t sem;
+
+struct node *queue = NULL;
 // вставьте задачу в очередь
 // возвращает 0 в случае успеха или 1 в противном случае,
-int enqueue(task t) 
+int enqueue(Task t)
 {
-    return 0;
+    int i = 0;
+
+    Task *newTask = malloc(sizeof(Task));
+    if (!newTask) {
+        i = 1;
+        return i;
+    }
+
+    newTask->function = t.function;
+    newTask->data = t.data;
+
+    pthread_mutex_lock(&queue_lock);
+    insert(&queue, newTask);
+    pthread_mutex_unlock(&queue_lock);
+
+    return i;
 }
 
-// удаление задачи из очереди
-task dequeue() 
+// удаление задачи из очереди для получения работы из очереди
+Task dequeue()
 {
+    pthread_mutex_lock(&queue_lock);
+    delete(&queue, queue->task);
+    pthread_mutex_unlock(&queue_lock);
     return worktodo;
 }
-
 // рабочий поток в пуле потоков
 void *worker(void *param)
 {
-    // execute the task
-    execute(worktodo.function, worktodo.data);
-
-    pthread_exit(0);
+    // выполните задание
+    while (queue != NULL) {
+        sem_wait(&sem);
+        execute(queue->task->function, queue->task->data);
+        dequeue();
+    }
 }
 
 /**
