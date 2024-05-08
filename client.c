@@ -1,5 +1,5 @@
 /**
- * Example client program that uses thread pool.
+ * Пример клиентской программы, использующей пул потоков.
  */
 
 #include <stdio.h>

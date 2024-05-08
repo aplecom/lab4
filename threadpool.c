@@ -1,5 +1,5 @@
 /**
- * Implementation of thread pool.
+ * Реализация пула потоков.
  */
 
 #include <pthread.h>
@@ -13,8 +13,8 @@
 
 #define TRUE 1
 
-// this represents work that has to be 
-// completed by a thread in the pool
+// это представляет собой работу, которая должна быть
+// завершена потоком в пуле
 typedef struct 
 {
     void (*function)(void *p);
@@ -22,10 +22,10 @@ typedef struct
 }
 task;
 
-// the work queue
+// рабочая очередь
 task worktodo;
 
-// the worker bee
+// рабочий bee ( id потокка )
 pthread_t bee;
 
 // вставьте задачу в очередь
