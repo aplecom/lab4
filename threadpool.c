@@ -28,20 +28,20 @@ task worktodo;
 // the worker bee
 pthread_t bee;
 
-// insert a task into the queue
-// returns 0 if successful or 1 otherwise, 
+// вставьте задачу в очередь
+// возвращает 0 в случае успеха или 1 в противном случае,
 int enqueue(task t) 
 {
     return 0;
 }
 
-// remove a task from the queue
+// удаление задачи из очереди
 task dequeue() 
 {
     return worktodo;
 }
 
-// the worker thread in the thread pool
+// рабочий поток в пуле потоков
 void *worker(void *param)
 {
     // execute the task
@@ -51,7 +51,7 @@ void *worker(void *param)
 }
 
 /**
- * Executes the task provided to the thread pool
+ * Выполняет задачу, предоставленную пулу потоков
  */
 void execute(void (*somefunction)(void *p), void *p)
 {
@@ -59,7 +59,7 @@ void execute(void (*somefunction)(void *p), void *p)
 }
 
 /**
- * Submits work to the pool.
+ * Отправляет работу в пул.
  */
 int pool_submit(void (*somefunction)(void *p), void *p)
 {
@@ -69,13 +69,13 @@ int pool_submit(void (*somefunction)(void *p), void *p)
     return 0;
 }
 
-// initialize the thread pool
+// инициализируйте пул потоков
 void pool_init(void)
 {
     pthread_create(&bee,NULL,worker,NULL);
 }
 
-// shutdown the thread pool
+// завершите работу пула потоков
 void pool_shutdown(void)
 {
     pthread_join(bee,NULL);

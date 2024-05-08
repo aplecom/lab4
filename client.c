@@ -22,18 +22,18 @@ void add(void *param)
 
 int main(void)
 {
-    // create some work to do
+    // создайте какую-нибудь работу, которую нужно выполнить
     struct data work;
     work.a = 5;
     work.b = 10;
 
-    // initialize the thread pool
+    // инициализируем пул потоков
     pool_init();
 
-    // submit the work to the queue
+    // отправить работу в очередь
     pool_submit(&add,&work);
 
-    // may be helpful 
+    // может быть полезно
     //sleep(3);
 
     pool_shutdown();
