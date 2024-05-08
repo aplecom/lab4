@@ -8,10 +8,8 @@
 #include <semaphore.h>
 #include "threadpool.h"
 
-#define QUEUE_SIZE 10
 #define NUMBER_OF_THREADS 3
 
-#define TRUE 1
 
 // это представляет собой работу, которая должна быть
 // завершена потоком в пуле
@@ -30,7 +28,7 @@ sem_t sem;
 struct node *queue = NULL;
 // вставьте задачу в очередь
 // возвращает 0 в случае успеха или 1 в противном случае,
-int enqueue(Task t)
+int enqueue(Task task)
 {
     int i = 0;
 
@@ -40,8 +38,8 @@ int enqueue(Task t)
         return i;
     }
 
-    newTask->function = t.function;
-    newTask->data = t.data;
+    newTask->function = task.function;
+    newTask->data = task.data;
 
     pthread_mutex_lock(&queue_lock);
     insert(&queue, newTask);
@@ -82,20 +80,44 @@ void execute(void (*somefunction)(void *p), void *p)
  */
 int pool_submit(void (*somefunction)(void *p), void *p)
 {
+    int i = 0;
+
     worktodo.function = somefunction;
     worktodo.data = p;
+    i = enqueue(worktodo);
 
-    return 0;
+    if (!i)
+        sem_post(&sem); // Это сигнализирует потокам в пуле, что появилась новая задача для выполнения.
+
+    return i;
 }
 
 // инициализируйте пул потоков
 void pool_init(void)
 {
-    pthread_create(&bee,NULL,worker,NULL);
+    // 1 аргумент сам мьютекс , а второй
+    // NULL, или указатель на объект pthread_mutexattr_t, который указывает атрибуты,
+    // которые требуется использовать для мьютекса.
+    pthread_mutex_init(&queue_lock, NULL);
+    //  2 аргумент - Если равен 0, то семаформ - общий
+    //  для потоков, если ненулевое, то  для процессов
+    // 3 арг - начальное значение семафора
+    sem_init(&sem, 0, 0);
+    for (int i = 0; i < NUMBER_OF_THREADS; ++i) {
+        pthread_create(&bees[i],NULL,worker,NULL);
+    }
 }
 
 // завершите работу пула потоков
 void pool_shutdown(void)
 {
-    pthread_join(bee,NULL);
+    pthread_mutex_destroy(&queue_lock);
+    sem_destroy(&sem);
+    for (int i = 0; i < NUMBER_OF_THREADS; ++i) {
+        // прерывания потока
+        pthread_cancel(bees[i]);
+        // ожидания завершения потока - блокирует вызывающий поток, пока указанный поток не завершится
+        pthread_join(bees[i],NULL);
+        // 2 арг -   принимает значение статуса выхода завершенного потока при успешном завершении
+    }
 }
